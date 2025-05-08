@@ -21,6 +21,8 @@
 #include <string>
 #include <vector>
 
+#include "ns3/string.h"
+
 #include "ns3/nstime.h"
 #include "ns3/simulator.h"
 #include "ns3/log.h"
@@ -33,6 +35,8 @@
 #include "aqua-sim-header-mac.h"
 #include "aqua-sim-energy-model.h"
 #include "aqua-sim-phy-cmn.h"
+
+#include "aqua-sim-css-modulation.h"
 
 //Aqua Sim Phy Cmn
 
@@ -71,11 +75,18 @@ AquaSimPhyCmn::AquaSimPhyCmn(void) :
   m_freq = 25;
   m_transRange=-1;
 
-  m_modulationName = "default";
+
+ // IF I ADD SpreadingFactor AS AN ATTRIBUTE TO THS FILE, I CAN THEN USE THOSE VALUES WHEN CREATING THE CSS MOD BELOW : )
+
+
+  m_modulationName = "CSS";
+  Ptr<AquaSimCssModulation> cssMod = CreateObject<AquaSimCssModulation>();
+  AddModulation(cssMod, "CSS");
   AddModulation(CreateObject<AquaSimModulation>(), "default");
   if (!m_sC)
     m_sC = CreateObject<AquaSimSignalCache>();
   AttachPhyToSignalCache(m_sC, this);
+
 
   incPktCounter = 0;	//debugging purposes only
   outPktCounter = 0;
@@ -89,12 +100,87 @@ AquaSimPhyCmn::~AquaSimPhyCmn(void)
   Dispose();
 }
 
+// TypeId
+// AquaSimPhyCmn::GetTypeId(void)
+// {
+//   static TypeId tid = TypeId("ns3::AquaSimPhyCmn")
+//     .SetParent<AquaSimPhy>()
+//     .AddConstructor<AquaSimPhyCmn>()
+//     .AddAttribute("CPThresh", "Capture Threshold (db), default is 10.0 set as 10.",
+//       DoubleValue (10),
+//       MakeDoubleAccessor(&AquaSimPhyCmn::m_CPThresh),
+//       MakeDoubleChecker<double> ())
+//     .AddAttribute("CSThresh", "Carrier sense threshold (W), default is 1.559e-11 set as 0.",
+//       DoubleValue(0),
+//       MakeDoubleAccessor(&AquaSimPhyCmn::m_CSThresh),
+//       MakeDoubleChecker<double>())
+//     .AddAttribute("RXThresh", "Receive power threshold (W), default is 3.652e-10 set as 0.",
+//       DoubleValue(0),
+//       MakeDoubleAccessor(&AquaSimPhyCmn::m_RXThresh),
+//       MakeDoubleChecker<double>())
+//     .AddAttribute("PT", "Transmitted signal power (W).",
+//       DoubleValue(0.2818),
+//       MakeDoubleAccessor(&AquaSimPhyCmn::m_pT),
+//       MakeDoubleChecker<double>())
+//     .AddAttribute("Frequency", "The frequency, default is 25(khz).",
+//       DoubleValue(25),
+//       MakeDoubleAccessor(&AquaSimPhyCmn::m_freq),
+//       MakeDoubleChecker<double>())
+//     .AddAttribute("L", "System loss default factor.",
+//       DoubleValue(0),
+//       MakeDoubleAccessor(&AquaSimPhyCmn::m_L),
+//       MakeDoubleChecker<double>())
+//     .AddAttribute("K", "Energy spread factor, spherical spreading. Default is 2.0.",
+//       DoubleValue(2.0),
+//       MakeDoubleAccessor(&AquaSimPhyCmn::m_K),
+//       MakeDoubleChecker<double>())
+//     .AddAttribute("TurnOnEnergy", "Energy consumption for turning on the modem (J).",
+//       DoubleValue(0),
+//       MakeDoubleAccessor(&AquaSimPhyCmn::m_EnergyTurnOn),
+//       MakeDoubleChecker<double>())
+//     .AddAttribute("TurnOffEnergy", "Energy consumption for turning off the modem (J).",
+//       DoubleValue(0),
+//       MakeDoubleAccessor(&AquaSimPhyCmn::m_EnergyTurnOff),
+//       MakeDoubleChecker<double>())
+//     .AddAttribute("Preamble", "Duration of preamble.",
+//       DoubleValue(0),
+//       MakeDoubleAccessor(&AquaSimPhyCmn::m_preamble),
+//       MakeDoubleChecker<double>())
+//     .AddAttribute("Trigger", "Duration of trigger.",
+//       DoubleValue(0),
+//       MakeDoubleAccessor(&AquaSimPhyCmn::m_trigger),
+//       MakeDoubleChecker<double>())
+//     .AddAttribute("PTLevel", "Level of transmitted signal power.",
+//       UintegerValue(0),
+//       MakeUintegerAccessor(&AquaSimPhyCmn::m_ptLevel),
+//       MakeUintegerChecker<uint32_t> ())
+//     .AddAttribute("SignalCache", "Signal cache attached to this node.",
+//       PointerValue(),
+//       MakePointerAccessor (&AquaSimPhyCmn::m_sC),
+//       MakePointerChecker<AquaSimSignalCache>())
+//     .AddTraceSource("Rx", "A packet was receieved.",
+//       MakeTraceSourceAccessor (&AquaSimPhyCmn::m_rxLogger),
+//       "ns3::AquaSimPhy::TracedCallback")
+//     .AddTraceSource("Tx", "A packet was transmitted.",
+//       MakeTraceSourceAccessor (&AquaSimPhyCmn::m_txLogger),
+//       "ns3::AquaSimPhy::TracedCallback")
+//     .AddTraceSource("RxColl", "Count collision on Rx",
+//       MakeTraceSourceAccessor (&AquaSimPhyCmn::m_rxCollTrace),
+//       "ns3::AquaSimPhy::TracedCallback")
+//     ;
+//   return tid;
+// }
+
 TypeId
 AquaSimPhyCmn::GetTypeId(void)
 {
   static TypeId tid = TypeId("ns3::AquaSimPhyCmn")
     .SetParent<AquaSimPhy>()
     .AddConstructor<AquaSimPhyCmn>()
+    .AddAttribute("DefaultModulation", "Default modulation scheme for the PHY layer.",
+      StringValue("CSS"), // Set "CSS" as the default modulation
+      MakeStringAccessor(&AquaSimPhyCmn::m_modulationName),
+      MakeStringChecker())
     .AddAttribute("CPThresh", "Capture Threshold (db), default is 10.0 set as 10.",
       DoubleValue (10),
       MakeDoubleAccessor(&AquaSimPhyCmn::m_CPThresh),

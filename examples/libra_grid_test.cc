@@ -60,6 +60,11 @@ main (int argc, char *argv[])
   // Number of intermediate nodes (only for some experiments!!!)
   int n_intermediate_nodes = 0;
 
+  //Modulation Specifications
+  double spreading_factor = 7.0;
+  double bandwidth = 125000;
+  double centerFrequency = 10000;
+
   //to change on the fly
   CommandLine cmd;
   cmd.AddValue ("simStop", "Length of simulation", simStop);
@@ -70,6 +75,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("range", "Transmission range", range);
   cmd.AddValue ("tx_power", "Max transmission power", max_tx_power);
   cmd.AddValue ("intermediate_nodes", "Number of intermediate nodes", n_intermediate_nodes);
+  cmd.AddValue ("spreading_factor", "Spreading Factor", spreading_factor);
 
 
   cmd.Parse(argc,argv);
@@ -108,7 +114,8 @@ main (int argc, char *argv[])
   asHelper.SetRouting("ns3::AquaSimRoutingDummy");
 
   // Define the Tx power
-  asHelper.SetPhy("ns3::AquaSimPhyCmn", "PT", DoubleValue(max_tx_power));
+  // asHelper.SetPhy("ns3::AquaSimPhyCmn", "PT", DoubleValue(max_tx_power));
+  asHelper.SetPhy("ns3::AquaSimPhyCmn", "DefaultModulation", StringValue("CSS"));
 
 
   /*
